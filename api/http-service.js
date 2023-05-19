@@ -134,10 +134,10 @@ export class HttpService {
         },
       },
     })
-      .then(({ data, error }) => {
-        if (error.value)
-          return { success: false, errors: error.value.data.errors };
-        return { success: true, data: data.value };
+      .then((response) => {
+        response.errors = computed(() => response.error.value?.data?.errors || [])
+        response.success = computed(() => !response.error.value)
+        return response
       })
   };
 
