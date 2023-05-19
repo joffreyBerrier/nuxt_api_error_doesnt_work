@@ -136,10 +136,7 @@ export class HttpService {
     })
       .then(({ data, error }) => {
         if (error.value)
-          return {
-            success: false,
-            data: error.value.data
-          }
+          return { success: false, errors: error.value.data.errors };
         return { success: true, data: data.value };
       })
   };

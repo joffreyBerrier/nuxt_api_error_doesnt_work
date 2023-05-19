@@ -14,8 +14,8 @@ const sendEmail = async () => {
 // If I call this function in the setup, I have this error : data.toJSON is not a function
 // sendEmail()
 const firstErrorMessage = computed(() => {
-  if (!lastEmailResponse?.value.success && lastEmailResponse.value.data.errors) {
-    const data = lastEmailResponse.value.data.errors[0]
+  if (!lastEmailResponse?.value.success && lastEmailResponse.value.errors) {
+    const data = lastEmailResponse.value.errors[0]
     const key = Object.keys(data)[0]
     const value = unref(data[key])
     // format it into a string code, easier to process
