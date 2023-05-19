@@ -70,19 +70,7 @@ export class HttpService {
 
   triggerOnResponse = async (response, url) => {
     await this.setHeadersOnResponse(response);
-
-    return new Promise((resolve, reject) => {
-      response.status === 200
-        ? resolve({ ...response })
-        : reject({
-            // Add this line to avoid custom H3 errors
-            // constructor: { __h3_error__: true },
-            response: {
-              data: response._data,
-              status: response.status,
-            },
-          });
-    });
+    return response
   };
 
   handleOnRequest = async () => {
@@ -146,13 +134,23 @@ export class HttpService {
         },
       },
     })
-      .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+      .then((response) => {
+        response.errors = computed(() => response.error.value?.data?.errors || [])
+        response.errorMessage = computed(() => {
+          const data = response.error.value?.data?.errors[0]
+          const key = Object.keys(data)[0]
+          const value = unref(data[key])
+          // format it into a string code, easier to process
+          // probably want some state, i18n and form integration
+          switch(`${key}.${Object.keys(value)[0]}`) {
+            case 'user.invitation_token':
+              return 'Invalid invitation token'
+          }
+          // void
+        })
+        response.success = computed(() => !response.error.value)
+        return response
       })
-      .catch((err) => {
-        return Promise.reject(err);
-      });
   };
 
   put = (url, data) => {
