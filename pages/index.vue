@@ -13,19 +13,6 @@ const sendEmail = async () => {
 
 // If I call this function in the setup, I have this error : data.toJSON is not a function
 // sendEmail()
-const firstErrorMessage = computed(() => {
-  if (!lastEmailResponse?.value.success && lastEmailResponse.value.errors) {
-    const data = lastEmailResponse.value.errors[0]
-    const key = Object.keys(data)[0]
-    const value = unref(data[key])
-    // format it into a string code, easier to process
-    switch(`${key}.${Object.keys(value)[0]}`) {
-      case 'user.invitation_token':
-        return 'Invalid invitation token'
-    }
-  }
-  return false
-})
 </script>
 
 <template>
@@ -35,9 +22,9 @@ const firstErrorMessage = computed(() => {
     <input v-model="email" />
 
     <template v-if="lastEmailResponse">
-    <div v-if="firstErrorMessage">
+    <div v-if="!lastEmailResponse.success">
       <p>Oops like there was some errors :(</p>
-      <p>{{ firstErrorMessage }}</p>
+      <p>{{ lastEmailResponse.errorMessage }}</p>
     </div>
     <p v-else>Thanks for the email!</p>
     </template>

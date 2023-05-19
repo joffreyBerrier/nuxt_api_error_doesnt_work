@@ -136,6 +136,18 @@ export class HttpService {
     })
       .then((response) => {
         response.errors = computed(() => response.error.value?.data?.errors || [])
+        response.errorMessage = computed(() => {
+          const data = response.error.value?.data?.errors[0]
+          const key = Object.keys(data)[0]
+          const value = unref(data[key])
+          // format it into a string code, easier to process
+          // probably want some state, i18n and form integration
+          switch(`${key}.${Object.keys(value)[0]}`) {
+            case 'user.invitation_token':
+              return 'Invalid invitation token'
+          }
+          // void
+        })
         response.success = computed(() => !response.error.value)
         return response
       })
