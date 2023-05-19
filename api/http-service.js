@@ -70,19 +70,7 @@ export class HttpService {
 
   triggerOnResponse = async (response, url) => {
     await this.setHeadersOnResponse(response);
-
-    return new Promise((resolve, reject) => {
-      response.status === 200
-        ? resolve({ ...response })
-        : reject({
-            // Add this line to avoid custom H3 errors
-            // constructor: { __h3_error__: true },
-            response: {
-              data: response._data,
-              status: response.status,
-            },
-          });
-    });
+    return response
   };
 
   handleOnRequest = async () => {
@@ -147,12 +135,13 @@ export class HttpService {
       },
     })
       .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+        if (error.value)
+          return {
+            success: false,
+            data: error.value.data
+          }
+        return { success: true, data: data.value };
       })
-      .catch((err) => {
-        return Promise.reject(err);
-      });
   };
 
   put = (url, data) => {
