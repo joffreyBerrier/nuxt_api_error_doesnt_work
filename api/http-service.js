@@ -1,4 +1,4 @@
-import { formatResponseApi } from "./api-serializer";
+import { formatResponseApi as serializeData } from "./api-serializer";
 
 export class HttpService {
   constructor({
@@ -68,21 +68,66 @@ export class HttpService {
     return { accessToken, client, uid };
   };
 
-  triggerOnResponse = async (response, url) => {
-    await this.setHeadersOnResponse(response);
+  formatResponseApi = (input) => {
+    // *****
+    // INPUT equal to { data, pending, error }
+    // *****
+    // Example :
+    //   "data": {
+    //       "__v_isShallow": false,
+    //       "__v_isRef": true,
+    //       "_rawValue": null,
+    //       "_value": null
+    //   },
+    //   "pending": {
+    //       "__v_isShallow": false,
+    //       "__v_isRef": true,
+    //       "_rawValue": false,
+    //       "_value": false
+    //   },
+    //   "error": {
+    //       "_object": {
+    //           "#endpoint_which_have_errors": {
+    //               "message": " (status code (#request url)",
+    //               "statusCode": status,
+    //               "statusMessage": "Bad Request",
+    //               "data": {
+    //                   # Array of errors
+    //                   "errors": [
+    //                       {
+    //                           "user": {
+    //                               "invitation_token": "invalid"
+    //                           }
+    //                       }
+    //                   ]
+    //               }
+    //           }
+    //       },
+    //       "_key": "# Endpoint",
+    //       "__v_isRef": true
+    //   }
+    // }
 
-    return new Promise((resolve, reject) => {
-      response.status === 200
-        ? resolve({ ...response })
-        : reject({
-            // Add this line to avoid custom H3 errors
-            // constructor: { __h3_error__: true },
-            response: {
-              data: response._data,
-              status: response.status,
-            },
-          });
-    });
+    // Return data if no error
+    if (input?.data?.value) return input.data.value;
+
+    // Return a Promise.reject if error
+    // Promise allows to have requests that fall in error when using then / catch or try / catch methods in Javascript
+    if (input?.error?.value?.data) {
+      const responseErrors = {
+        response: {
+          data: {
+            errors: input.error.value.data.errors,
+          },
+        },
+      };
+
+      return Promise.reject(responseErrors);
+    }
+  };
+
+  triggerOnResponse = async (response) => {
+    await this.setHeadersOnResponse(response);
   };
 
   handleOnRequest = async () => {
@@ -108,19 +153,22 @@ export class HttpService {
         body: { ...data },
         headers: { ...this.headers },
         transform: (input) => {
-          return formatResponseApi(input);
+          // Serialize data
+          return serializeData(input);
         },
         onRequest: () => {
+          // Trigger on each request, using to get headersing to get headers
           return this.handleOnRequest();
         },
         onResponse: ({ response }) => {
-          return this.triggerOnResponse(response, url);
+          // You can't return a new response in the onResponse hook
+          return this.triggerOnResponse(response);
         },
       },
     })
-      .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+      .then((response) => {
+        // Return a promise and manager resolve / reject to have a consistent API with try {} catch(err) {} methods
+        return this.formatResponseApi(response);
       })
       .catch((err) => {
         return Promise.reject(err);
@@ -136,19 +184,22 @@ export class HttpService {
         params: data ? { ...data.params } : {},
         headers: { ...this.headers },
         transform: (input) => {
-          return formatResponseApi(input);
+          // Serialize data
+          return serializeData(input);
         },
         onRequest: () => {
+          // Trigger on each request, using to get headers
           return this.handleOnRequest();
         },
         onResponse: ({ response }) => {
-          return this.triggerOnResponse(response, url);
+          // You can't return a new response in the onResponse hook
+          return this.triggerOnResponse(response);
         },
       },
     })
-      .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+      .then((response) => {
+        // Return a promise and manager resolve / reject to have a consistent API with try {} catch(err) {} methods
+        return this.formatResponseApi(response);
       })
       .catch((err) => {
         return Promise.reject(err);
@@ -164,19 +215,22 @@ export class HttpService {
         body: { ...data },
         headers: { ...this.headers },
         transform: (input) => {
-          return formatResponseApi(input);
+          // Serialize data
+          return serializeData(input);
         },
         onRequest: () => {
+          // Trigger on each request, using to get headers
           return this.handleOnRequest();
         },
         onResponse: ({ response }) => {
-          return this.triggerOnResponse(response, url);
+          // You can't return a new response in the onResponse hook
+          return this.triggerOnResponse(response);
         },
       },
     })
-      .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+      .then((response) => {
+        // Return a promise and manager resolve / reject to have a consistent API with try {} catch(err) {} methods
+        return this.formatResponseApi(response);
       })
       .catch((err) => {
         return Promise.reject(err);
@@ -191,19 +245,22 @@ export class HttpService {
       options: {
         headers: { ...this.headers },
         transform: (input) => {
-          return formatResponseApi(input);
+          // Serialize data
+          return serializeData(input);
         },
         onRequest: () => {
+          // Trigger on each request, using to get headers
           return this.handleOnRequest();
         },
         onResponse: ({ response }) => {
-          return this.triggerOnResponse(response, url);
+          // You can't return a new response in the onResponse hook
+          return this.triggerOnResponse(response);
         },
       },
     })
-      .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+      .then((response) => {
+        // Return a promise and manager resolve / reject to have a consistent API with try {} catch(err) {} methods
+        return this.formatResponseApi(response);
       })
       .catch((err) => {
         return Promise.reject(err);
@@ -222,19 +279,22 @@ export class HttpService {
           "Content-Disposition": formData,
         },
         transform: (input) => {
-          return formatResponseApi(input);
+          // Serialize data
+          return serializeData(input);
         },
         onRequest: () => {
+          // Trigger on each request, using to get headers
           return this.handleOnRequest();
         },
         onResponse: ({ response }) => {
-          return this.triggerOnResponse(response, url);
+          // You can't return a new response in the onResponse hook
+          return this.triggerOnResponse(response);
         },
       },
     })
-      .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+      .then((response) => {
+        // Return a promise and manager resolve / reject to have a consistent API with try {} catch(err) {} methods
+        return this.formatResponseApi(response);
       })
       .catch((err) => {
         return Promise.reject(err);
@@ -252,19 +312,22 @@ export class HttpService {
           ? { ...this.headers, ...headers }
           : { ...headers },
         transform: (input) => {
-          return formatResponseApi(input);
+          // Serialize data
+          return serializeData(input);
         },
         onRequest: () => {
+          // Trigger on each request, using to get headers
           return this.handleOnRequest();
         },
         onResponse: ({ response }) => {
-          return this.triggerOnResponse(response, url);
+          // You can't return a new response in the onResponse hook
+          return this.triggerOnResponse(response);
         },
       },
     })
-      .then(({ data, error }) => {
-        if (data.value) return data.value;
-        if (error.value) return Promise.reject(error.value);
+      .then((response) => {
+        // Return a promise and manager resolve / reject to have a consistent API with try {} catch(err) {} methods
+        return this.formatResponseApi(response);
       })
       .catch((err) => {
         return Promise.reject(err);
